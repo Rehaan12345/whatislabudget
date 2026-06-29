@@ -1,0 +1,202 @@
+{
+  "meta": {
+    "fiscal_year": "2026-27",
+    "source": "LA City Budget Resolution (City Attorney Report R-26-0299), adopted May 21 2026",
+    "column_used": "Mayor's Final Budget Appropriation"
+  },
+  "totals": {
+    "total_expenditures": 14869596285,
+    "general_fund": 8597396902,
+    "total_departmental": 6374393822,
+    "total_nondepartmental": 8495202463
+  },
+  "departments": [
+    {
+      "name": "Police",
+      "amount": 2114202404,
+      "group": "Public Safety"
+    },
+    {
+      "name": "Fire",
+      "amount": 939446813,
+      "group": "Public Safety"
+    },
+    {
+      "name": "Bureau of Sanitation",
+      "amount": 452895709,
+      "group": "Streets & Sanitation"
+    },
+    {
+      "name": "Recreation and Parks",
+      "amount": 371853864,
+      "group": "Parks & Culture"
+    },
+    {
+      "name": "General Services",
+      "amount": 236179755,
+      "group": "Other Services"
+    },
+    {
+      "name": "Transportation",
+      "amount": 233737259,
+      "group": "Streets & Sanitation"
+    },
+    {
+      "name": "City Attorney",
+      "amount": 195274382,
+      "group": "Other Services"
+    },
+    {
+      "name": "Bureau of Street Services",
+      "amount": 193425474,
+      "group": "Streets & Sanitation"
+    },
+    {
+      "name": "Building and Safety",
+      "amount": 167374703,
+      "group": "Housing & Community"
+    },
+    {
+      "name": "Bureau of Engineering",
+      "amount": 128686322,
+      "group": "Streets & Sanitation"
+    },
+    {
+      "name": "Housing",
+      "amount": 127634457,
+      "group": "Housing & Community"
+    },
+    {
+      "name": "Information Technology Agency",
+      "amount": 98801825,
+      "group": "Other Services"
+    },
+    {
+      "name": "Personnel",
+      "amount": 84716790,
+      "group": "Other Services"
+    },
+    {
+      "name": "Community Investment",
+      "amount": 82634138,
+      "group": "Housing & Community"
+    },
+    {
+      "name": "Finance",
+      "amount": 81034038,
+      "group": "Other Services"
+    },
+    {
+      "name": "City Planning",
+      "amount": 75608242,
+      "group": "Housing & Community"
+    },
+    {
+      "name": "City Administrative Officer",
+      "amount": 53140026,
+      "group": "Other Services"
+    },
+    {
+      "name": "Bureau of Street Lighting",
+      "amount": 49394524,
+      "group": "Streets & Sanitation"
+    },
+    {
+      "name": "Animal Services",
+      "amount": 30807336,
+      "group": "Other Services"
+    },
+    {
+      "name": "Board of Public Works",
+      "amount": 29696853,
+      "group": "Other Services"
+    },
+    {
+      "name": "Controller",
+      "amount": 25864527,
+      "group": "Other Services"
+    },
+    {
+      "name": "Cultural Affairs",
+      "amount": 20746022,
+      "group": "Parks & Culture"
+    },
+    {
+      "name": "City Clerk",
+      "amount": 19890296,
+      "group": "Other Services"
+    },
+    {
+      "name": "Cannabis Regulation",
+      "amount": 8461559,
+      "group": "Other Services"
+    },
+    {
+      "name": "Disability",
+      "amount": 6191298,
+      "group": "Health & Social"
+    },
+    {
+      "name": "Emergency Management",
+      "amount": 4938072,
+      "group": "Public Safety"
+    },
+    {
+      "name": "Civil, Human Rights and Equity",
+      "amount": 3586186,
+      "group": "Other Services"
+    },
+    {
+      "name": "Neighborhood Empowerment",
+      "amount": 3582807,
+      "group": "Other Services"
+    },
+    {
+      "name": "El Pueblo de Los Angeles",
+      "amount": 2934089,
+      "group": "Parks & Culture"
+    }
+  ],
+  "nondepartmental": [
+    {
+      "name": "Debt Service (2024 Pension Notes)",
+      "amount": 1520218892
+    },
+    {
+      "name": "Human Resources Benefits",
+      "amount": 1000831882
+    },
+    {
+      "name": "Capital Improvement Program",
+      "amount": 832546083
+    },
+    {
+      "name": "House LA Fund (Homelessness/Measure ULA)",
+      "amount": 515661782
+    },
+    {
+      "name": "General City Purposes",
+      "amount": 475250572
+    },
+    {
+      "name": "Capital Finance Administration",
+      "amount": 209722076
+    },
+    {
+      "name": "Liability Claims",
+      "amount": 205370072
+    },
+    {
+      "name": "Bond Redemption and Interest",
+      "amount": 115952089
+    },
+    {
+      "name": "Petroleum Products",
+      "amount": 43109595
+    },
+    {
+      "name": "Leasing",
+      "amount": 39604451
+    }
+  ]
+}
