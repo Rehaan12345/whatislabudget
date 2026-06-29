@@ -6,7 +6,7 @@
 <title>LA Budget 2026-27 — Ask Anything</title>
 <style>
   body{font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-       max-width:760px;margin:40px auto;padding:0 20px;color:#1a2433}
+       max-width:1080px;margin:40px auto;padding:0 28px;color:#1a2433}
   h1{font-size:1.5rem;margin:0 0 4px}
   #status{font-size:.9rem;margin-bottom:20px;padding:6px 10px;border-radius:6px;display:inline-block}
   #status.loading{background:#fff7e6;color:#8a6d1a}
@@ -37,7 +37,16 @@
   #sources h3{font-size:.85rem;text-transform:uppercase;letter-spacing:.05em;color:#5a6a7e;margin:0 0 6px}
   #sourceList{margin:0;padding-left:20px;font-size:.92rem;color:#3a4a5e}
   #sourceList li{margin-bottom:6px}
-  #viz-container{margin-top:16px;padding-top:16px;border-top:1px solid #e2e8f0}
+  #response-body{display:flex;gap:28px;align-items:flex-start}
+  #viz-container{flex:0 0 46%;max-width:46%;align-self:stretch}
+  #text-col{flex:1 1 auto;min-width:0}
+  @media (max-width:720px){
+    #response-body{flex-direction:column}
+    #viz-container{flex-basis:auto;max-width:none;width:100%}
+  }
+  .stat-title{font-size:.9rem;color:#5a6a7e;text-align:center;margin-bottom:4px}
+  .stat-value{font-size:2.4rem;font-weight:700;color:#1c4e80;text-align:center}
+  .viz-note{font-size:.82rem;color:#5a6a7e;margin-top:8px;font-style:italic}
   [hidden]{display:none !important}
 </style>
 </head>
@@ -55,17 +64,22 @@
 
   <div id="result" hidden>
     <div id="lastQuestion"></div>
-    <div id="answer"></div>
-    <!-- Reserved for iteration 2 (charts). Hidden until /ask returns a non-null viz. -->
-    <div id="viz-container" hidden></div>
-    <div id="sources">
-      <h3>Sources:</h3>
-      <ul id="sourceList"></ul>
+    <div id="response-body">
+      <!-- Chart (iteration 2) on the left; answer + sources on the right. Hidden until /ask returns a non-null viz. -->
+      <div id="viz-container" hidden></div>
+      <div id="text-col">
+        <div id="answer"></div>
+        <div id="sources">
+          <h3>Sources:</h3>
+          <ul id="sourceList"></ul>
+        </div>
+      </div>
     </div>
   </div>
 
 <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 const API = "http://localhost:8000";
 
@@ -80,6 +94,27 @@ const lastQEl   = document.getElementById("lastQuestion");
 const answerEl  = document.getElementById("answer");
 const sourceList= document.getElementById("sourceList");
 const vizEl     = document.getElementById("viz-container");
+
+let chart = null;  // active Chart.js instance, destroyed + recreated per response
+
+// ---- value formatting ----
+function abbrDollars(value){
+  const n = Math.abs(value);
+  const fmt = (div, suf) => {
+    let s = (value / div).toFixed(1);
+    if(s.endsWith(".0")) s = s.slice(0, -2);
+    return "$" + s + suf;
+  };
+  if(n >= 1e9) return fmt(1e9, "B");
+  if(n >= 1e6) return fmt(1e6, "M");
+  if(n >= 1e3) return fmt(1e3, "K");
+  return "$" + Math.round(value);
+}
+function formatValue(value, unit){
+  if(unit === "percent") return (Math.round(value * 10) / 10) + "%";
+  if(unit === "count")   return Number(value).toLocaleString("en-US");
+  return abbrDollars(value); // default: dollars
+}
 
 function setStatus(text, cls){ statusEl.textContent = text; statusEl.className = cls; }
 function setReady(ready){ input.disabled = !ready; submitBtn.disabled = !ready; }
@@ -159,10 +194,94 @@ function renderAnswer(data){
   }
   document.getElementById("sources").hidden = citations.length === 0;
 
-  // viz stays hidden while null (iteration 2 will populate it).
-  vizEl.hidden = (data.viz == null);
+  // viz is rendered only when present; otherwise the container stays hidden.
+  if(data.viz == null){
+    if(chart){ chart.destroy(); chart = null; }
+    vizEl.innerHTML = "";
+    vizEl.hidden = true;
+  }else{
+    vizEl.hidden = false;
+    renderViz(data.viz);
+  }
 
   resultEl.hidden = false;
+}
+
+function renderViz(viz){
+  if(chart){ chart.destroy(); chart = null; }
+  vizEl.innerHTML = "";
+
+  if(viz.type === "single_stat"){
+    const item = (viz.data && viz.data[0]) || { value: 0 };
+    vizEl.innerHTML =
+      `<div class="stat-title">${viz.title || ""}</div>` +
+      `<div class="stat-value">${formatValue(item.value, viz.unit)}</div>` +
+      (viz.note ? `<div class="viz-note"></div>` : "");
+    if(viz.note) vizEl.querySelector(".viz-note").textContent = viz.note;
+    return;
+  }
+
+  // bar / pie need a canvas inside a sized wrapper (maintainAspectRatio: false)
+  const wrap = document.createElement("div");
+  wrap.style.position = "relative";
+  const canvas = document.createElement("canvas");
+  wrap.appendChild(canvas);
+  vizEl.appendChild(wrap);
+  if(viz.note){
+    const note = document.createElement("div");
+    note.className = "viz-note";
+    note.textContent = viz.note;
+    vizEl.appendChild(note);
+  }
+
+  if(viz.type === "bar"){
+    const rows = [...viz.data].sort((a, b) => b.value - a.value); // largest → smallest
+    wrap.style.height = (rows.length * 34 + 60) + "px";
+    chart = new Chart(canvas, {
+      type: "bar",
+      data: {
+        labels: rows.map(r => r.label),
+        datasets: [{ data: rows.map(r => r.value), backgroundColor: "#2b6cb0", borderRadius: 3 }]
+      },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          title: { display: !!viz.title, text: viz.title },
+          tooltip: { callbacks: { label: c => formatValue(c.raw, viz.unit) } }
+        },
+        scales: { x: { ticks: { callback: v => formatValue(v, viz.unit) } } }
+      }
+    });
+  }else if(viz.type === "pie"){
+    let rows = [...viz.data].sort((a, b) => b.value - a.value);
+    if(rows.length > 8){
+      const top = rows.slice(0, 7);
+      const otherVal = rows.slice(7).reduce((s, r) => s + Number(r.value), 0);
+      top.push({ label: "Other", value: otherVal });
+      rows = top;
+    }
+    const total = rows.reduce((s, r) => s + Number(r.value), 0);
+    wrap.style.height = "320px";
+    chart = new Chart(canvas, {
+      type: "doughnut",
+      data: { labels: rows.map(r => r.label), datasets: [{ data: rows.map(r => r.value) }] },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: "right" },
+          title: { display: !!viz.title, text: viz.title },
+          tooltip: { callbacks: { label: c => {
+            const pct = total ? (100 * c.raw / total).toFixed(1) : "0";
+            return `${c.label}: ${formatValue(c.raw, viz.unit)} (${pct}%)`;
+          } } }
+        }
+      }
+    });
+  }
 }
 
 pollStatus();

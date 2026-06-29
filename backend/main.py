@@ -3,11 +3,19 @@
 import asyncio
 import logging
 
+# Load .env (if present) so ANTHROPIC_API_KEY can live in a file for local dev.
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from backend.config import NOTEBOOK_NAME
+from backend.intent import get_viz, rewrite_answer
 from backend.notebook_manager import NotebookManager
 
 logging.basicConfig(level=logging.INFO)
@@ -94,10 +102,26 @@ async def ask(req: AskRequest):
         logger.exception("chat.ask failed")
         raise HTTPException(status_code=502, detail=f"NotebookLM error: {e}")
 
+    answer_raw = getattr(result, "answer", "")
     references = getattr(result, "references", None) or []
+
+    # Iteration 2: derive chart data from the raw answer. get_viz never raises,
+    # but guard anyway so an extraction failure can't break the answer.
+    try:
+        viz = await get_viz(question, answer_raw)
+    except Exception:  # noqa: BLE001
+        logger.exception("get_viz raised; continuing without viz")
+        viz = None
+
+    # Iteration 2.5: rewrite the raw answer into plain conversational English.
+    # Runs after get_viz because it needs to know whether a chart is shown.
+    # Falls back to the raw answer on any failure.
+    answer = await rewrite_answer(answer_raw, question, has_viz=viz is not None)
+
     return {
-        "answer": getattr(result, "answer", ""),
+        "answer": answer,           # conversational, shown to the user
+        "answer_raw": answer_raw,   # original NotebookLM text (debug / iteration 3)
         "citations": [_reference_to_str(r) for r in references],
         "question": question,
-        "viz": None,  # reserved for iteration 2 (charts); always null for now
+        "viz": viz,                 # null when no chart applies
     }

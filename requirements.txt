@@ -1,3 +1,5 @@
 notebooklm-py[browser]
 fastapi
 uvicorn[standard]
+anthropic
+python-dotenv

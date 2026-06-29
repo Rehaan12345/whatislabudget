@@ -1,4 +1,5 @@
 .notebook_id
+.env
 __pycache__/
 *.pyc
 .venv/

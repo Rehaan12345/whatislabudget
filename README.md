@@ -25,6 +25,20 @@ Install the rest of the dependencies:
 pip install -r requirements.txt
 ```
 
+### Charts (iteration 2): set an Anthropic API key
+
+When a question implies a chart, the backend uses Claude (`claude-haiku-4-5`) to
+classify intent and extract chart data from the answer. Put your key in the
+`.env` file at the repo root:
+
+```
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+`.env` is loaded automatically on startup. (An `export ANTHROPIC_API_KEY=...`
+in your shell works too.) This is optional — without a key, answers still work
+and `viz` is simply `null`.
+
 ### 2. Place the budget PDF
 
 Put the source PDF at:
@@ -58,4 +72,4 @@ so restarting the server reuses the same notebook and does **not** re-upload.
 - `GET /health` — `{status, notebook_id, notebook_name}`
 - `GET /notebook-status` — `{status, ready, notebook_id, error}` (frontend polls this)
 - `POST /ask` — body `{"question": "..."}` → `{answer, citations, question, viz}`
-  (`viz` is reserved for a later charts iteration and is always `null` for now)
+  (`viz` carries `{type, title, data, unit, note}` when a chart applies, else `null`)
